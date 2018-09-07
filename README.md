@@ -72,7 +72,7 @@ aws ssm put-parameter --name '/core/github-pr-webhook-secret' --value "$(ruby -r
 ### Retrieve CloudFormation
 
 ```
-aws cloudformation get-template --stack-name deploy-docker-sagoku-test
+aws cloudformation get-template --stack-name pullrequest-clone-pipeline
 ```
 
 ### Creating our Serverless webhook handler
