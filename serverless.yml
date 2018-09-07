@@ -1,0 +1,53 @@
+service: pullrequest-clone-pipeline
+
+package:
+ exclude:
+   - ./**
+ include:
+   - ./bin/**
+
+frameworkVersion: ">=1.28.0 <2.0.0"
+
+provider:
+  region: us-east-1
+  stage: test
+  name: aws
+  runtime: go1.x
+  environment:
+    GITHUB_OAUTH_TOKEN: ${ssm:/core/github-otp~true}
+    GITHUB_PR_WEBHOOK_TOKEN: ${ssm:/core/github-pr-webhook-secret~true}
+    SGK_ENVIRONMENT: ${opt:stage,self:provider.stage}
+    CODEPIPELINE_TEMPLATE_NAME: 'simple-go-server'
+  # iamRoleStatements are not used if role is specified, but this documents requirements
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action: 'ssm:GetParameters'
+      Resource:
+        - 'arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/core/ithaka-cypress-github-otp'
+        - 'arn:aws:ssm:#{AWS::Region}:#{AWS::AccountId}:parameter/core/github-pr-webhook-secret'
+    - Effect: 'Allow'
+      Action:
+        - 'codepipeline:CreatePipeline'
+        - 'codepipeline:UpdatePipeline'
+        - 'codepipeline:DeletePipeline'
+        - 'codepipeline:GetPipeline'
+        - 'codepipeline:GetPipelineState'
+        - 'codepipeline:ListPipelines'
+      Resource:
+        - '*'
+    - Effect: 'Allow'
+      Action:
+        - 'iam:PassRole'
+      Resource:
+        - 'arn:aws:iam::#{AWS::AccountId}:role/AWS-CodePipeline-Service'
+  timeout: 10 # optional, default is 6
+  deploymentBucket: sequoia-short-lived
+
+functions:
+  pullrequest-clone-pipeline:
+#    role: arn:aws:iam::#{AWS::AccountId}:role/lambda_exec_role_labs
+    handler: bin/pullrequest-clone-pipeline
+    events:
+      - http:
+          path: pullrequest-clone-pipeline
+          method: post
