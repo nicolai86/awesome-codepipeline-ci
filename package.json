@@ -1,0 +1,18 @@
+{
+  "name": "pullrequest-clone-pipeline",
+  "version": "1.0.0",
+  "description": "",
+  "author": "Steve Coffman <steve.coffman@ithaka.org>",
+  "license": "MIT",
+  "devDependencies": {
+    "serverless": "^1.30.3",
+    "serverless-pseudo-parameters": "^2.2.0"
+  },
+  "scripts": {
+    "build": "rm -rf ./bin ./vendor Gopkg.lock && dep ensure -v && GOOS=linux go build -ldflags='-s -w' -o bin/pullrequest-clone-pipeline pullrequest-clone-pipeline/main.go",
+    "deploy": "serverless deploy --stage test",
+    "invoke": "serverless invoke -f pullrequest-clone-pipeline --stage test --data '{\"appName\":\"dummy\",\"userName\":\"steve.coffman@ithaka.org\",\"image\":\"artifactory.acorn.cirrostratus.org/cypress/hello-world\"}'",
+    "deployfunc": "serverless deploy function -f pullrequest-clone-pipeline",
+    "logs": "serverless logs -f pullrequest-clone-pipeline"
+  }
+}
